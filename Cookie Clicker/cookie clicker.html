@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Cookie Clicker Multiplayer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <h1>Cookie Clicker Multiplayer</h1>
+    <div class="state">
+        Cookies: <span class="score">?</span>
+    </div>
+    <div>
+        Cookies per sec: <span class="autoClick">?</span>
+    </div>
+    <br>
+    <div class="button">
+        <div class="click"><img src="Cookie.png" /></div>
+    </div>
+    <div class="state">
+        <span class="users">?</span> online
+    </div>
+
+    <div class="container">
+        <div class="omi">
+            <div class="button" style="margin: 2rem;">
+                <div class="state">Omi<br>Price: <span class="omiPrice">?</span></div>
+                <div class="buyOmi"><img src="omi.png" /></div>
+                <div class="state">
+                    Omis: <span class="omis">?</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="wolf">
+            <div class="button" style="margin: 2rem;">
+                <div class="state">Wolf<br>Price: <span class="wolfPrice">?</span></div>
+                <div class="buyWolf"><img height="293px" src="wolf.png" /></div>
+                <div class="state">
+                    Großer Böser Wolf: <span class="wolfis">?</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var click = document.querySelector('.click'),
+            value = document.querySelector('.score'),
+            users = document.querySelector('.users'),
+            buyOmi = document.querySelector('.buyOmi'),
+            omis = document.querySelector('.omis'),
+            omiPrice = document.querySelector('.omiPrice'),
+            buyWolf = document.querySelector('.buyWolf'),
+            wolfis = document.querySelector('.wolfis'),
+            wolfPrice = document.querySelector('.wolfPrice'),
+            autoClick = document.querySelector('.autoClick'),
+            websocket = new WebSocket("ws://127.0.0.1:6789/");
+        click.onclick = function (event) {
+            websocket.send(JSON.stringify({ action: 'click' }));
+        }
+        buyOmi.onclick = function (event) {
+            websocket.send(JSON.stringify({ action: 'buyOmi' }))
+        }
+        buyWolf.onclick = function (event) {
+            websocket.send(JSON.stringify({ action: 'buyWolf' }))
+        }
+        websocket.onmessage = function (event) {
+            data = JSON.parse(event.data);
+            if (data.type == 'state') {
+                value.textContent = data.value;
+                autoClick.textContent = data.autoCookies;
+            }
+            if (data.type == 'users') {
+                users.textContent = (data.count.toString() + " User" + (data.count == 1 ? "" : "s"));
+            }
+            switch (data.type) {
+                case 'state':
+                    value.textContent = data.value;
+                    autoClick.textContent = data.autoCookies;
+                    break;
+                case 'users':
+                    users.textContent = (
+                        data.count.toString() + " User" +
+                        (data.count == 1 ? "" : "s"));
+                    break;
+                case 'upgrades':
+                    omis.textContent = data.omi;
+                    omiPrice.textContent = data.omiPrice;
+                    wolfis.textContent = data.wolf;
+                    wolfPrice.textContent = data.wolfPrice;
+                    break;
+                default:
+                    console.error("unsupported event", data);
+            }
+        };
+    </script>
+</body>
+</html>
